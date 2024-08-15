@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include "lib.h"
+
+
+int ac;
+char** av;
+FILE* f;
 
 long srcSize(){
     FILE *file = fopen(__FILE__, "rb");  // Open the current source file
@@ -52,20 +58,32 @@ FILE* nfile(const char *file_path)
     fprintf(new_file, "%s ", date_string);
     fprintf(new_file, "%d %d\n%s (%s)\n\n", buf->tm_sec, size, txt, hh);
 
+    fflush(new_file);
     // Close the file
     return new_file;
 
     // ...
 }
-int main()
+
+int main(int argc, char *argv[]) 
 {
-    FILE* file = nfile("file");
+    ac = argc;
+    av = argv;
+    f = nfile("file");
+   
+    //c99();
+    //defn();
+    adv();
+    //FILE* read = fopen("file", "r");
+    //int c = 
     
-    int c = allocs();
+    //filesf(file, read);
+
+    //subs();
     //pipes();
     //rev();
     //cmpss()
     //studs();
-    fclose(file);
+    //fclose(file);
     return 0;
 }

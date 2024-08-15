@@ -29,10 +29,6 @@ int parse(char* pipelines, char** params) {
 
     return n;
 }
-int _p_main(void){
-    pipes();
-    return 0;
-}
 int pipes() {
     char command[] = "command1 | command2 | command3";
     char* pipelineCommands[MAX_COMMAND_PARAMS];
@@ -49,5 +45,9 @@ int pipes() {
         printf("\n");
     }
 
+    return 0;
+}
+int _p_main(void){
+    pipes();
     return 0;
 }

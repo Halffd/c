@@ -52,7 +52,7 @@ int allocget()
 {
 
  // Will loop until EOF or error.
- const buf_size = 4;
+ int buf_size = 4;
  while (1)
  {
  char *user_input = calloc(1, buf_size*sizeof(char));

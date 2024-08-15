@@ -5,5 +5,7 @@ file(GLOB_RECURSE source_files "src/*.c")
 
 add_executable(c ${source_files})
 
-set_target_properties(c PROPERTIES OUTPUT_NAME "${PROJECT_SOURCE_DIR}/bin/c")
 target_include_directories(c PRIVATE lib)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
+set_target_properties(c PROPERTIES OUTPUT_NAME c)

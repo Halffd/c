@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
+
 void matrix(){
     
-    int *p = 0x3F8;
-    int *p1 = 1500;
+    int *p = (int *)0x3F8;
+    int *p1 = (int *) 1500;
     printf("Pointers:\n%p, %p\n%d, %d\n%p %p", p,p1,p,p1,&p,&p1);
 
     int i = 5;
