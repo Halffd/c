@@ -1,3 +1,8 @@
 build
 bin
 src/file
+.history
+exc/bin
+exc/build
+file
+src/out

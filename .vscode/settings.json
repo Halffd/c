@@ -1,0 +1,23 @@
+{
+    "files.associations": {
+        "lib.h": "c",
+        "lua.h": "c",
+        "stdio.h": "c",
+        "lualib.h": "c",
+        "regex.h": "c",
+        "array": "c",
+        "chrono": "c",
+        "deque": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "string_view": "c",
+        "format": "c",
+        "initializer_list": "c",
+        "span": "c",
+        "text_encoding": "c",
+        "print.h": "c",
+        "stdlib.h": "c",
+        "stdarg.h": "c"
+    }
+}
