@@ -3,6 +3,10 @@
 #ifdef LOGFILE
 FILE *logFile;
 
+char timeBuffer[TIME_LEN];
+time_t currentTime;
+struct tm *local_time;
+
 // Function to initialize the log file
 void initLogFile() {
     logFile = fopen(LOGFILE, "a");
@@ -29,10 +33,37 @@ void logToFile(const char *format, ...) {
         }
         fprintf(logFile, "\n--------------------\n");
     }
+
+    currentTime = time(NULL);
+    // converte para a hora local
+    local_time = localtime(&currentTime);
+
+
+    // Get current time in milliseconds
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    long int current_ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
+    // Get the known time in milliseconds
+    long int known_ms = currentTime * 1000; // Convert to milliseconds
+
+    // Calculate the difference in milliseconds
+    long int diff_ms = current_ms - known_ms;
+
+    // Convert the difference to seconds as float
+    float diff_seconds = diff_ms / 1000.0f;
+    // Format the time as "dd/mm/yyyy hh:mm:ss"
+    strftime(timeBuffer, TIME_LEN, "%d/%m/%Y %H:%M:", local_time);
+    char secBuf[3];
+    strftime(secBuf, TIME_LEN, "%S", local_time);
+    float sec = atoi(secBuf) + diff_seconds;
+    fprintf(logFile, "%s%06.3f : ", timeBuffer, sec); // Add a newline for better formatting
+    // Handle variable arguments
     va_list args;
     va_start(args, format);
     vfprintf(logFile, format, args);
     va_end(args);
+    fflush(logFile); // Ensure the output is flushed to the file
 }
 #endif
 
@@ -244,4 +275,23 @@ void print1p(void *p) {
 
 void print1ps(void *p) {
     prints("p", "\n", " ", p);
+}
+
+int printw(const char *format, ...) {
+    char buffer[BUFFER_SIZE]; // Buffer for the formatted string
+
+    va_list args;
+    va_start(args, format);
+    
+    // Format the string into the buffer
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args); // Clean up the va_list
+
+    // Print to stdout
+    int result = printf("%s", buffer);
+    
+    // Log to file
+    logToFile("%s", buffer);
+
+    return result; // Return the result of printf
 }

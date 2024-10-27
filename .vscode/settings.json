@@ -18,6 +18,14 @@
         "text_encoding": "c",
         "print.h": "c",
         "stdlib.h": "c",
-        "stdarg.h": "c"
+        "stdarg.h": "c",
+        "string.h": "c",
+        "conio.h": "c",
+        "CONIO.H": "cpp",
+        "STDLIB.H": "cpp",
+        "stdbool.h": "c",
+        "ctype.h": "c",
+        "util.h": "c",
+        "GUIT.C": "cpp"
     }
 }

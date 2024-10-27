@@ -6,7 +6,8 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include "lib.h"
-
+#include "print.h"
+#include "util.h"
 
 int ac;
 char** av;
@@ -101,9 +102,14 @@ int main(int argc, char *argv[])
 {
     ac = argc;
     av = argv;
-    fs.base_path = argv[0];
+    StrArray *dirs = split(argv[0], "\\");
+    del(dirs, -1);
+    set(dirs, -1, "log\\");
+    fs.base_path = join(dirs, "\\");
     fs.file = append_filename;
-    printf("Args: %s\n---------------\n", argv[0]);
+    char *d = replace(argv[0], "build\\c.exe", "");
+    char *dd = replace(d, "\\", "/");
+    printw("Args: %s\nDir: %s\n---------------\n", argv[0], fs.base_path);
     f = nfile(fs.file("cfile.txt"));
     FILE *new_file = fopen(fs.file("testc"), "w");
     fprintf(new_file, "...");

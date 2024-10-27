@@ -5,10 +5,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-
+#include <time.h>
+#include <sys/time.h>
 // Define LOGFILE for logging purposes
 // Uncomment and define LOGFILE as needed
-#define LOGFILE "log.txt"
+#define LOGFILE "../log/log.txt"
+#define TIME_LEN 150
+#define BUFFER_SIZE 4096
 
 // Enum for data types
 typedef enum {
@@ -50,5 +53,7 @@ void print1c(char c);
 void print1cs(char c);
 void print1p(void *p);
 void print1ps(void *p);
+
+int printw(const char *format, ...);
 
 #endif // PRINT_H

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "print.h"
 #include "lib.h"
+#define LEN 150
 
 int arrptrtest()
 {
@@ -63,11 +64,11 @@ int max(int, int);
 int maxtst()
 {
     print1d(11111111);
-    //setlocale(LC_ALL, "pt_BR.UTF-8"); // Set locale to UTF-8
+    // setlocale(LC_ALL, "pt_BR.UTF-8"); // Set locale to UTF-8
     float c = -10.5251295f;
-    c = (int) c;
-    int a = (int) c;
-    a |= (int) -1210530.3495;
+    c = (int)c;
+    int a = (int)c;
+    a |= (int)-1210530.3495;
     int b = 0xFFFF;
     b &= 12;
     b <<= 4;
@@ -80,7 +81,7 @@ int maxtst()
     b |= !0b010;
     b -= !0x111;
     b += !010000;
-    b != (int) 2.95000001;
+    b != (int)2.95000001;
     print("dcd", a, ' ', b);
     int ret;
 
@@ -100,11 +101,71 @@ int max(int num1, int num2)
         resultado = num2;
     return resultado;
 }
+
+int timelib()
+{
+
+    time_t seg;
+
+    seg = time(NULL);
+
+    print("sd", "O numero de horas desde 1º de janeiro de 1970 eh", (int) seg / 3600);
+    {
+
+        time_t minha_hora;
+
+        minha_hora = time(NULL);
+
+         print1s(ctime(&minha_hora));
+    }
+
+    {
+        char buf[LEN];
+
+        time_t curtime;
+
+        struct tm *loc_time;
+
+        // obtém hora corrente do sistema
+
+        curtime = time(NULL);
+
+        // converte para a hora local
+
+        loc_time = localtime(&curtime);
+
+        // mostra hora e data no formato-padrão
+        print1s(asctime(loc_time));
+
+        strftime(buf, LEN, "Hoje eh %A, %b %d.", loc_time);
+        print1s(buf);
+
+        strftime(buf, LEN, "A hora eh %I : %M : %S %p.", loc_time);
+
+        print1s(buf);
+    }
+    {
+
+        time_t start, end;
+
+        volatile long unsigned contador;
+
+        start = time(NULL);
+
+        for (contador = 0; contador < 500000000; contador++); /* Não executa nada */
+
+        end = time(NULL);
+
+        print("sfs", "O loop for usa ", difftime(end, start), " segundos");
+    }
+    return 0;
+}
 int est(int argc, char *argv[])
 {
     printi(3, 4, argc, -8);
     prints("sds", "\n", " ", "est:", argc, argv[0]);
     // return arrptrtest();
     // arrest();
-    maxtst();
+    // maxtst();
+    timelib();
 }
