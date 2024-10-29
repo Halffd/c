@@ -1,4 +1,4 @@
--- values.lua
+-- values-table.lua
 
 ValuesTable = {}
 ValuesTable.__index = ValuesTable
@@ -7,30 +7,33 @@ ValuesTable.__index = ValuesTable
 function ValuesTable.new()
     local self = setmetatable({}, ValuesTable)
     self.values = {}
-    ptin("Made ", self)
+    print("Created ValuesTable instance at:", self)
     return self
 end
 
 -- Method to add a value
 function ValuesTable:add(value)
-    print(self.values, ' / ', self, ' / ', value)
+    print("Adding value:", value, "to table at:", self)
     table.insert(self.values, value)
-    print('Table: ', table)
+    print("Current values:", self.values)
 end
 
 -- Method to get the minimum value
 function ValuesTable:min()
-    print("Self ", #self, self)
-    print("Values ", #self.values, self.values)
-    if #self.values == 0 then return nil end
+    if #self.values == 0 then
+        print("No values in the table.")
+        return nil
+    end
     local minValue = self.values[1]
-    print("Min ", minValue)
+    print("Initial min value:", minValue)
+
     for _, v in ipairs(self.values) do
-        print(_, ' . ', v)
+        print("Checking value:", v)
         if v < minValue then
             minValue = v
         end
     end
-    print(minValue)
+
+    print("Minimum value found:", minValue)
     return minValue
 end
