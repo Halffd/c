@@ -1,0 +1,7 @@
+LIB\c0s.obj+
+intr
+intr
+/c/x
+LIB\EMU.LIB+
+LIB\maths.lib+
+LIB\cs.lib
