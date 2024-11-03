@@ -7,3 +7,4 @@ exc/build
 file
 src/out
 log
+.cache

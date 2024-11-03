@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <conio.h>
 #include "print.h"
 #include "lib.h"
 #define LEN 150
+
+#define WIDTH 256
+#define HEIGHT 256
 
 int arrptrtest()
 {
@@ -160,6 +164,107 @@ int timelib()
     }
     return 0;
 }
+void saida(){
+ // Exemplo de formatação de strings
+    int num = -42;
+    float pi = 3.14159;
+    char letter = 'A';
+    char *str = "Hello, World!";
+    
+    printf("Character: %c\n", letter);
+    printf("Integer with sign: %d\n", num);
+    printf("Float: %f\n", pi);
+    printf("Scientific notation (lowercase): %e\n", pi);
+    printf("String: %s\n", str);
+    printf("Hexadecimal (lowercase): %x\n", 255);
+    printf("Hexadecimal (uppercase): %X\n", 255);
+    printf("Percentage: 100%% complete\n");
+
+    // Exemplo de códigos especiais
+    printf("This is line one.\nThis is line two.\n");
+    printf("Column1\tColumn2\n");
+    printf("Hello\bWorld\n");
+    printf("Hello\rWorld\n");
+    printf("Quote: \"This is a quote.\"\n");
+    printf("Backslash: \\\n");
+
+    char ch1,ch2,ch3;
+
+   // ch1=getch(); //Não exibe o caractere na tela
+
+    ch2=getche(); //Exibe o caractere na tela
+
+    ch3=getchar(); //Exibe o caractere na tela e aguarda Enter para armazenar na variável ch3
+    char ch4[100]; // Buffer to hold the input string
+    printf("Enter a string: ");
+    
+    // Using fgets to safely read a string
+    if (fgets(ch4, sizeof(ch4), stdin) != NULL) {
+        printf("You entered: %s", ch4);
+    }
+    char s[55];
+    gets(s);
+
+    printf("%c %c %c %s",ch1,ch2,ch3, s);
+}
+void create_rgb_binary(const char *filename) {
+    FILE *file = fopen(filename, "wb");
+    if (!file) {
+        perror("Unable to create binary file");
+        return;
+    }
+
+    // Write pixel data (RGB format)
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            unsigned char r = (unsigned char)(255.0 * x / WIDTH); // Gradient from black to red
+            unsigned char g = (unsigned char)(255.0 * y / HEIGHT); // Gradient from black to green
+            unsigned char b = 0; // No blue for this gradient
+
+            // Write RGB values to binary file
+            fwrite(&r, sizeof(unsigned char), 1, file);
+            fwrite(&g, sizeof(unsigned char), 1, file);
+            fwrite(&b, sizeof(unsigned char), 1, file);
+        }
+    }
+
+    fclose(file);
+    printf("Custom binary file created: %s\n", filename);
+}
+void read_rgb_binary(const char *filename) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        perror("Unable to open binary file");
+        return;
+    }
+
+    // Allocate memory for pixel data
+    unsigned char (*pixelData)[3] = malloc(HEIGHT * WIDTH * 3 * sizeof(unsigned char));
+    if (pixelData == NULL) {
+        perror("Unable to allocate memory for pixel data");
+        fclose(file);
+        return;
+    }
+
+    // Read pixel data
+    size_t bytesRead = fread(pixelData, sizeof(unsigned char), WIDTH * HEIGHT * 3, file);
+    if (bytesRead != WIDTH * HEIGHT * 3) {
+        printf("Error reading pixel data.\n");
+    }
+
+    // Print some pixel values (first 10 pixels)
+    for (int y = 0; y < 1; y++) { // Only first row for simplicity
+        for (int x = 0; x < 10; x++) {
+            unsigned char r = pixelData[y * WIDTH + x][0];      // Red
+            unsigned char g = pixelData[y * WIDTH + x][1];      // Green
+            unsigned char b = pixelData[y * WIDTH + x][2];      // Blue
+            printf("Pixel (%d, %d) - R: %d, G: %d, B: %d\n", x, y, r, g, b);
+        }
+    }
+
+    free(pixelData);
+    fclose(file);
+}
 int est(int argc, char *argv[])
 {
     printi(3, 4, argc, -8);
@@ -167,5 +272,8 @@ int est(int argc, char *argv[])
     // return arrptrtest();
     // arrest();
     // maxtst();
-    timelib();
+    //timelib();
+    create_rgb_binary("gradient.rgb");
+    read_rgb_binary("gradient.rgb");
+    saida();
 }

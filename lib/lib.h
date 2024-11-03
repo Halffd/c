@@ -16,6 +16,7 @@ int defn();
 void c99();
 int lua(int argc, char *argv[]);
 int est(int argc, char *argv[]);
+int serial(int argc, char* argv[]);
 extern int ac;
 extern char** av;
 extern FILE* f;

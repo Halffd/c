@@ -118,8 +118,10 @@ int main(int argc, char *argv[])
     //c99();
     //defn();
     //adv();
-    lua(argc, argv);
+    //lua(argc, argv);
+    
     //est(argc, argv);
+    serial(argc, argv);
     //FILE* read = fopen("file", "r");
     //int c = 
     
