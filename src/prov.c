@@ -3,7 +3,34 @@
 #include <limits.h>
 
 
-int prov(int argc, char const *argv[])
+int prov(int argc, char *argv[])
+{
+
+    return 0;
+{
+    int v1=1, v2=0;
+
+    while(v1<=5)
+    {
+        v2=v2+v1;
+        v1+=4;
+    }
+
+    printf("%d e %d", v2, v1);
+    return 0;
+}
+    int v1=1, v2=0;
+
+    while(v2<=5)
+    {
+        v2=v2+v1;
+        v1+=3;
+    }
+
+    printf("%d e %d", v2, v1);
+    return 0;
+}
+int prov1s(int argc, char const *argv[])
 {
     
     // printf("C v%d", __STDC_VERSION__);

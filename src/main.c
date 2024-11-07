@@ -115,13 +115,18 @@ int main(int argc, char *argv[])
     fprintf(new_file, "...");
     fclose(new_file);
 
+    //prov(argc, argv);
+    //c11();
+    pthr();
     //c99();
     //defn();
     //adv();
     //lua(argc, argv);
     
     //est(argc, argv);
-    serial(argc, argv);
+    //serial(argc, argv);
+    //return server(argc, argv);
+    //return chat(argc, argv);
     //FILE* read = fopen("file", "r");
     //int c = 
     

@@ -78,10 +78,54 @@ int cxpfft() {
 
     return 0;
 }
+void hex(){
+    double num1 = 123.456;
+    double num2 = 0.000123456;
+    
+    printf("Using %%a:\n");
+    printf("num1 in hex: %a\n", num1);
+    printf("num2 in hex: %a\n", num2);
+    
+    printf("Using %%A:\n");
+    printf("num1 in hex: %A\n", num1);
+    printf("num2 in hex: %A\n", num2);
+    
+    // Define hexadecimal floating-point numbers
+    float hexFloats[] = {
+        0x3a.2bp1f,   // 0x3a.2b in base 2 raised to the power of 1
+        0x3a.2bp2f,   // 0x3a.2b in base 2 raised to the power of 2
+        0x3a.2bp3f,   // 0x3a.2b in base 2 raised to the power of 3
+        0x3a.2bp4f,   // 0x3a.2b in base 2 raised to the power of 4
+        0x3a.2bp0f,   // 0x3a.2b in base 2 raised to the power of 0
+        0xdffa.18eaa12bp1f, // 0xdffa.18eaa12 in base 2 raised to the power of 1
+        0x2fa.28a12bp25f, // 0xdffa.18eaa12 in base 2 raised to the power of 1
+        0x2f2ffff2a.2bp-12f, // 0xdffa.18eaa12 in base 2 raised to the power of 1
+        [8] = 0b01001000101000000100001,
+        0.5f,
+        1.35f,
+        -1.4f,
+        8.75f,
+        16.001f,
+        305.555f,
+        -0xff,
+        -0x11a.bp+1,
+        [18 ... 25] = 0
+    };
+
+    // Number of elements in the array
+    size_t count = sizeof(hexFloats) / sizeof(hexFloats[0]);
+
+    // Print the hexadecimal floating-point values
+    printf("Hexadecimal floating-point values:\n");
+    for (size_t i = 0; i < count; i++) {
+        printf("Value %zu %x %f: %a\n", i, (int) hexFloats[i], hexFloats[i], hexFloats[i]); // Print in hexadecimal float format
+    }
+}
 void c99(){
-    cxpfft();
+    //cxpfft();
     //crimg();
     //cmplx();
+    hex();
 }
 int cmplx() {
     int width = 8;

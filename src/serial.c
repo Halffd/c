@@ -432,6 +432,10 @@ int perguntaLeitura(void) {
         return 1; // Sai do programa em caso de erro
     }
 
+    /* The above code is a comment block in the C programming language. It is not performing any
+    specific action or functionality in the program. Comments are used to provide explanations or
+    notes within the code for better understanding by developers and are ignored by the compiler
+    during the compilation process. */
     /*------ Ajustando timeouts --------------*/
     COMMTIMEOUTS timeouts = {0};
     timeouts.ReadIntervalTimeout = 50;

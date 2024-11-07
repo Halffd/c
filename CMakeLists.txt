@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.28.1)
 project(c C)
 
+set(CMAKE_C_STANDARD 11)              # Set the C standard to C11
+set(CMAKE_C_STANDARD_REQUIRED ON)     # Make the standard required
+set(CMAKE_C_EXTENSIONS OFF)           # Disable compiler-specific extensions
+ 
 # Create a boolean option for assembly generation
 option(GENERATE_ASM "Generate assembly files" ON)
 
@@ -8,22 +12,34 @@ file(GLOB_RECURSE source_files "src/*.c")
 
 add_executable(c ${source_files})
 
+# Find the necessary packages if needed (for example, pthread for multi-threading)
+find_package(Threads REQUIRED)
+
 # Specify the path to the LuaJIT libraries
 set(LUAJIT_DIR "${CMAKE_SOURCE_DIR}/lib/lua")
+set(SOCCKETS "${CMAKE_SOURCE_DIR}/lib/sockets/WS2_32.Lib")
 
 # Find the LuaJIT libraries
 set(LUAJIT_LIBS
     "${LUAJIT_DIR}/libluajit-5.1.dll.a"
     "${LUAJIT_DIR}/libluajit-5.1.a"
-)
+) 
 
 # Include directories for LuaJIT and your lib
 include_directories("${LUAJIT_DIR}/include" "${CMAKE_SOURCE_DIR}/lib")
-
+#set(MSYS_INCLUDE_DIR "S:/msys64/usr/include")
+ 
+include_directories(${MSYS_INCLUDE_DIR})
 # Link LuaJIT libraries
-target_link_libraries(c ${LUAJIT_LIBS})
-
-# Set output properties
+target_link_libraries(c ${LUAJIT_LIBS} ${CMAKE_THREAD_LIBS_INIT} ws2_32 ${SOCKETS})
+# Enable all warnings for GCC and Clang
+target_compile_options(c PRIVATE
+        #-Wall        # Enable all warnings
+        #-Wextra     # Enable extra warnings
+        #-Wpedantic   # Enable strict ISO C/C++ compliance
+        #-Werror     # Treat warnings as errors
+)
+# Set output properties 
 set_target_properties(c PROPERTIES OUTPUT_NAME c)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
