@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdlib.h>
 
 // Function to get a substring
 char* substring(const char *str, int start, int end);

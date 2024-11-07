@@ -10,6 +10,11 @@
 #endif
 #include <stdio.h>
 #include <math.h>
+#ifndef _WIN32
+_Complex double cexp(_Complex double x) {
+  return x * x;
+}
+#endif
 
 double calculatePi(double threshold) {
     double pi = 0.0;

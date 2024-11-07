@@ -1,5 +1,15 @@
 #include "util.h"
-
+#ifndef _WIN32
+// Custom strdup implementation
+char* strdup(const char *s) {
+    if (!s) return NULL;
+    size_t len = strlen(s) + 1; // +1 for the null terminator
+    char *copy = (char *)malloc(len);
+    if (!copy) return NULL; // Allocation failed
+    strcpy(copy, s);
+    return copy;
+}
+#endif
 // Function to get a substring
 char* substring(const char *str, int start, int end) {
     if (start < 0 || end > strlen(str) || start > end) {
@@ -14,6 +24,7 @@ char* substring(const char *str, int start, int end) {
     sub[len] = '\0'; // Null-terminate the substring
     return sub;
 }
+
 // Function to replace all occurrences of a substring
 char* replace(const char *str, const char *old, const char *replacement) {
     if (!str || !old || !replacement) return NULL;
@@ -46,11 +57,13 @@ char* replace(const char *str, const char *old, const char *replacement) {
     *ptr = '\0'; // Null-terminate the result
     return result;
 }
+
 // Function to find the index of a substring
 int indexOf(const char *str, const char *substr) {
     char *pos = strstr(str, substr);
     return (pos) ? (pos - str) : -1; // Return the index or -1 if not found
 }
+
 // Function to split a string by a delimiter
 char** splitArr(const char *str, const char *delimiter, int *count) {
     // Allocate memory for the array of strings
@@ -72,6 +85,7 @@ char** splitArr(const char *str, const char *delimiter, int *count) {
     *count = size; // Set the number of tokens found
     return result; // Return the array of tokens
 }
+
 // Function to free the memory allocated for the split result
 void free_split(char **result, int count) {
     for (int i = 0; i < count; i++) {
@@ -79,6 +93,7 @@ void free_split(char **result, int count) {
     }
     free(result); // Free the array of strings
 }
+
 // Function to initialize a StrArray
 StrArray* create_array() {
     StrArray *arr = (StrArray*)malloc(sizeof(StrArray));
@@ -143,7 +158,7 @@ void del(StrArray *arr, int index) {
     }
 }
 
-// Function to split a string by a delimiter
+// Function to split a string by a delimiter (StrArray version)
 StrArray* split(const char *str, const char *delimiter) {
     StrArray *result = create_array();
     char *temp = strdup(str); // Create a modifiable copy of the original string

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef _WIN32
@@ -100,7 +101,9 @@ int tcpServerHTTP(int argc, char **argv) {
             send(connfd, response, strlen(response), 0);
 
             // Optionally, wait a bit before closing if `keep-alive` is desired
+#ifdef _WIN32
             Sleep(5000); // Wait for 5 seconds (1000 ms = 1 second)
+#endif
         }
         // Close the connection
 #ifdef _WIN32
@@ -236,14 +239,22 @@ int tcpClient(int argc, char **argv) {
     // Convert IP address from text to binary
     if (inet_pton(AF_INET, argv[2], &servaddr.sin_addr) <= 0) {
         perror("Invalid address");
+        #ifdef _WIN32
         closesocket(sockfd);
+        #else
+        close(sockfd);
+        #endif
         exit(EXIT_FAILURE);
     }
 
     printf("Connecting to server...\n");
     if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
         perror("Connection failed");
+        #ifdef _WIN32
         closesocket(sockfd);
+        #else
+        close(sockfd);
+        #endif
         exit(EXIT_FAILURE);
     }
 
@@ -256,7 +267,11 @@ int tcpClient(int argc, char **argv) {
         printf("Received message: %s\n", recvline); // Print received message
     }
 
-    closesocket(sockfd);
+    #ifdef _WIN32
+        closesocket(sockfd);
+        #else
+        close(sockfd);
+        #endif
     return 0;
 }
 int udpServer() {
@@ -292,7 +307,11 @@ int udpServer() {
                (struct sockaddr *)&cliaddr, addr_len);
     }
 
-    closesocket(sockfd); // Cleanup
+    #ifdef _WIN32
+    closesocket(sockfd);
+    #else
+    close(sockfd);
+    #endif
     return 0;
 }
 int udpClient(int argc, char **argv) {
@@ -313,7 +332,11 @@ int udpClient(int argc, char **argv) {
     
     if (inet_pton(AF_INET, argv[2], &servaddr.sin_addr) <= 0) {
         perror("Invalid address");
+        #ifdef _WIN32
         closesocket(sockfd);
+        #else
+        close(sockfd);
+        #endif
         return -1;
     }
 
@@ -332,7 +355,11 @@ int udpClient(int argc, char **argv) {
         printf("Received message: %s\n", recvline);
     }
 
+    #ifdef _WIN32
     closesocket(sockfd);
+    #else
+    close(sockfd);
+    #endif
     return 0;
 }
 

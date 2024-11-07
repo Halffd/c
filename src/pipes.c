@@ -6,8 +6,11 @@
 
 int parse_pipe(char* command, char** pipelines) {
     int n = 0;
+    #ifdef _WIN32
     char* line = strdup(command); // Allocate memory and copy the command to line
-
+    #else
+    char* line = command; // Allocate memory and copy the command to line
+    #endif
     char* token = strtok(line, "|");
     while (token != NULL && n < MAX_COMMAND_PARAMS) {
         pipelines[n++] = token;

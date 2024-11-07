@@ -1,9 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
+#ifdef _WIN32
 #include <winsock2.h>
 #include <windows.h>
-#include <time.h>
+#define SOCKET_ERROR_CODE WSAGetLastError()
+#define CLOSE_SOCKET(sock) closesocket(sock)
+#define INITIALIZE_WINSOCK() WSAStartup(MAKEWORD(2, 2), &wsaData)
+#define SHUTDOWN_WINSOCK() WSACleanup()
+DWORD WINAPI clientHandler(void* clientData);
+DWORD WINAPI receiveMessages(void* socket_desc);
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <errno.h>
+#define SOCKET int
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR_CODE errno
+#define CLOSE_SOCKET(sock) close(sock)
+#define INITIALIZE_WINSOCK() // No operation for POSIX
+#define SHUTDOWN_WINSOCK() // No operation for POSIX
+#endif
 
 #define PORT 12345
 #define MAX_CLIENTS 10
@@ -17,32 +40,25 @@ typedef struct {
 Client clients[MAX_CLIENTS];
 int clientCount = 0;
 
-DWORD WINAPI clientHandler(void* clientData);
+void broadcastMessage(const char* message, SOCKET senderSocket);
+void* clientHandlerPOSIX(void* clientData);
+void* receiveMessagesPOSIX(void* socket_desc);
 
-void broadcastMessage(const char* message, SOCKET senderSocket) {
-    for (int i = 0; i < clientCount; i++) {
-        if (clients[i].socket != senderSocket) {
-            send(clients[i].socket, message, strlen(message), 0);
-        }
-    }
-}
-
+// Server code
 int chatServer() {
+#ifdef _WIN32
     WSADATA wsaData;
+    INITIALIZE_WINSOCK();
+#endif
+
     SOCKET serverSocket, newSocket;
     struct sockaddr_in serverAddr, clientAddr;
-    int addrLen = sizeof(struct sockaddr_in);
-
-    // Initialize Winsock
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        fprintf(stderr, "WSAStartup failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
+    socklen_t addrLen = sizeof(struct sockaddr_in);
 
     // Create socket
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == INVALID_SOCKET) {
-        fprintf(stderr, "Could not create socket. Error Code: %d\n", WSAGetLastError());
+        fprintf(stderr, "Could not create socket. Error Code: %d\n", SOCKET_ERROR_CODE);
         return 1;
     }
 
@@ -52,8 +68,8 @@ int chatServer() {
     serverAddr.sin_port = htons(PORT);
 
     // Bind
-    if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        fprintf(stderr, "Bind failed. Error Code: %d\n", WSAGetLastError());
+    if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+        fprintf(stderr, "Bind failed. Error Code: %d\n", SOCKET_ERROR_CODE);
         return 1;
     }
 
@@ -61,11 +77,11 @@ int chatServer() {
     listen(serverSocket, 3);
     printf("Server listening on port %d...\n", PORT);
 
-    // Accept and incoming connection
-    for (int i = 0; i < MAX_CLIENTS; i++) {
+    // Accept incoming connections
+    while (clientCount < MAX_CLIENTS) {
         newSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
         if (newSocket == INVALID_SOCKET) {
-            fprintf(stderr, "Accept failed. Error Code: %d\n", WSAGetLastError());
+            fprintf(stderr, "Accept failed. Error Code: %d\n", SOCKET_ERROR_CODE);
             return 1;
         }
 
@@ -78,151 +94,150 @@ int chatServer() {
 
         printf("Client connected: %s (%d)\n", username, newSocket);
 
-        // Send welcome message
+        // Welcome message
         char welcomeMessage[BUFFER_SIZE];
         snprintf(welcomeMessage, sizeof(welcomeMessage), "%s has joined the chat.\n", username);
         broadcastMessage(welcomeMessage, newSocket);
 
         // Create a thread for each client
+#ifdef _WIN32
         CreateThread(NULL, 0, clientHandler, (void*)&clients[clientCount - 1], 0, NULL);
+#else
+        pthread_t thread;
+        pthread_create(&thread, NULL, clientHandlerPOSIX, (void*)&clients[clientCount - 1]);
+#endif
     }
 
-    closesocket(serverSocket);
-    WSACleanup();
+    CLOSE_SOCKET(serverSocket);
+    SHUTDOWN_WINSOCK();
     return 0;
 }
 
+#ifdef _WIN32
 DWORD WINAPI clientHandler(void* clientData) {
+#else
+void* clientHandlerPOSIX(void* clientData) {
+#endif
     Client* client = (Client*)clientData;
     char buffer[BUFFER_SIZE];
     int recvSize;
 
-    // Receive messages from client
     while ((recvSize = recv(client->socket, buffer, BUFFER_SIZE - 1, 0)) > 0) {
         buffer[recvSize] = '\0'; // Null-terminate the string
-
-        // Get the current time
-        time_t now = time(NULL);
-        struct tm* local = localtime(&now);
-        char timeStamp[30];
-        strftime(timeStamp, sizeof(timeStamp), "[%Y-%m-%d %H:%M:%S] ", local);
-
-        // Prepare the message
-        char message[BUFFER_SIZE + 30];
-        snprintf(message, sizeof(message), "%s%s: %s", timeStamp, client->username, buffer);
-
-        printf("Message from %s: %s", client->username, buffer);
-
-        // Send the message to all other clients
-        broadcastMessage(message, client->socket);
+        broadcastMessage(buffer, client->socket);
     }
 
-    // Client disconnected
-    closesocket(client->socket);
+    CLOSE_SOCKET(client->socket);
     printf("Client disconnected: %s (%d)\n", client->username, client->socket);
-
-    // Notify other clients
-    char leaveMessage[BUFFER_SIZE];
-    snprintf(leaveMessage, sizeof(leaveMessage), "%s has left the chat.\n", client->username);
-    broadcastMessage(leaveMessage, client->socket);
-
+#ifdef _WIN32
     return 0;
+#else
+    return NULL;
+#endif
 }
-#define PORT 12345
-#define BUFFER_SIZE 256
 
-DWORD WINAPI receiveMessages(void* socket_desc);
+void broadcastMessage(const char* message, SOCKET senderSocket) {
+    for (int i = 0; i < clientCount; i++) {
+        if (clients[i].socket != senderSocket) {
+            send(clients[i].socket, message, strlen(message), 0);
+        }
+    }
+}
 
+// Client code
 int chatClient() {
+#ifdef _WIN32
     WSADATA wsaData;
+    INITIALIZE_WINSOCK();
+#endif
+
     SOCKET sock;
     struct sockaddr_in serverAddr;
 
-    // Initialize Winsock
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        fprintf(stderr, "WSAStartup failed. Error Code: %d\n", WSAGetLastError());
-        return 1;
-    }
-
-    // Create socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == INVALID_SOCKET) {
-        fprintf(stderr, "Could not create socket. Error Code: %d\n", WSAGetLastError());
+        fprintf(stderr, "Could not create socket. Error Code: %d\n", SOCKET_ERROR_CODE);
         return 1;
     }
 
-    // Prepare the sockaddr_in structure
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // Change this to server IP if needed
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     serverAddr.sin_port = htons(PORT);
 
-    // Connect to remote server
     if (connect(sock, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        fprintf(stderr, "Connect failed. Error Code: %d\n", WSAGetLastError());
+        fprintf(stderr, "Connect failed. Error Code: %d\n", SOCKET_ERROR_CODE);
         return 1;
     }
 
-    // Input username
     char username[30];
     printf("Enter your username: ");
     fgets(username, sizeof(username), stdin);
     username[strcspn(username, "\n")] = 0; // Remove newline character
-
-    // Send username to server
     send(sock, username, sizeof(username), 0);
 
     printf("Connected to server. You can start chatting!\n");
 
-    // Create a thread to receive messages
+#ifdef _WIN32
     CreateThread(NULL, 0, receiveMessages, (void*)&sock, 0, NULL);
+#else
+    pthread_t thread;
+    pthread_create(&thread, NULL, receiveMessagesPOSIX, (void*)&sock);
+#endif
 
-    // Main loop to send messages
     char buffer[BUFFER_SIZE];
     while (1) {
-        fgets(buffer, BUFFER_SIZE, stdin); // Read input from user
-        send(sock, buffer, strlen(buffer), 0); // Send message to server
+        fgets(buffer, BUFFER_SIZE, stdin);
+        send(sock, buffer, strlen(buffer), 0);
     }
 
-    closesocket(sock);
-    WSACleanup();
+    CLOSE_SOCKET(sock);
+    SHUTDOWN_WINSOCK();
     return 0;
 }
 
+#ifdef _WIN32
 DWORD WINAPI receiveMessages(void* socket_desc) {
+#else
+void* receiveMessagesPOSIX(void* socket_desc) {
+#endif
     SOCKET sock = *(SOCKET*)socket_desc;
     char buffer[BUFFER_SIZE];
     int recvSize;
 
-    // Receive messages from server
     while ((recvSize = recv(sock, buffer, BUFFER_SIZE - 1, 0)) > 0) {
-        buffer[recvSize] = '\0'; // Null-terminate the string
+        buffer[recvSize] = '\0';
         printf("Received: %s", buffer);
     }
 
     printf("Disconnected from server.\n");
-    closesocket(sock);
+    CLOSE_SOCKET(sock);
+#ifdef _WIN32
     return 0;
+#else
+    return NULL;
+#endif
 }
 
-int chat(int argc, char **argv) {
+// Main function
+int chat(int argc, char** argv) {
     if (argc < 2) {
+        printf("Usage: %s [server|client]\n", argv[0]);
         return 1;
     }
-    #ifdef _WIN32
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        fprintf(stderr, "WSAStartup failed.\n");
-        return -1;
-    }
-    #endif
+
+#ifdef _WIN32
+    INITIALIZE_WINSOCK();
+#endif
+
     if (strcmp(argv[1], "client") == 0) {
-        chatClient(argc, argv);
+        chatClient();
     } else if (strcmp(argv[1], "server") == 0) {
         chatServer();
     } else {
-        printf("Invalid argument.\n");
+        printf("Invalid argument. Use 'server' or 'client'.\n");
         return 1;
     }
 
+    SHUTDOWN_WINSOCK();
     return 0;
 }

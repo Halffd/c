@@ -6,6 +6,9 @@
 #define _POSIX_C_SOURCE 200112L // Or a suitable version
 #include <unistd.h>
 #include <semaphore.h>
+#ifndef PTHREAD_THREADS_MAX
+#define PTHREAD_THREADS_MAX 1024 // or any other reasonable number
+#endif
 #define MAXTHREADS 100
 
 void *funcaoC(void *);
@@ -19,7 +22,7 @@ int contador = 0; // Corrected declaration of contador
 int t_fking() {
     int IdentificacaoDoProcesso; /* PID – Identificação do processo junto ao S.O. */
     
-    IdentificacaoDoProcesso = 0; //fork();
+    IdentificacaoDoProcesso = fork();
 
     if (IdentificacaoDoProcesso == 0) { /* Este é o processo Filho */
         printf("Eu sou o processo filho: PID = %d \n", getpid());
@@ -237,7 +240,7 @@ int sleeps() {
 // Main function to call other functions
 int pthr() {
     // Uncomment one of the following lines to test different functionalities
-    // semaphores();
+    semaphores();
     //pthread_vptr();
     //pthread2();
     //sleeps();
@@ -245,7 +248,7 @@ int pthr() {
 
     //display_thread_info(); // Display thread info
     //mutexes();
-    // p_threads_joins();
+     p_threads_joins();
 //    max_threads();
     t_fking();
     return 0;

@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
 #include <conio.h>
+#endif
 #include "print.h"
 #include "lib.h"
 #define LEN 150
@@ -191,9 +194,11 @@ void saida(){
     char ch1,ch2,ch3;
 
    // ch1=getch(); //Não exibe o caractere na tela
-
+#ifdef _WIN32
     ch2=getche(); //Exibe o caractere na tela
-
+#else
+    ch2-'0';
+#endif
     ch3=getchar(); //Exibe o caractere na tela e aguarda Enter para armazenar na variável ch3
     char ch4[100]; // Buffer to hold the input string
     printf("Enter a string: ");
@@ -203,8 +208,9 @@ void saida(){
         printf("You entered: %s", ch4);
     }
     char s[55];
+#ifdef _WIN32
     gets(s);
-
+#endif
     printf("%c %c %c %s",ch1,ch2,ch3, s);
 }
 void create_rgb_binary(const char *filename) {
