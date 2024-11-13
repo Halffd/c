@@ -1,18 +1,35 @@
-section .data
-    hello db 'Hello, World!', 0
+.section .data
+filename:
+    .asciz "hello.s"           # File name with null terminator
+flags = 0x00000001                 # O_RDONLY
+buf:                                # Buffer for read data
+    .space 1024                    # Allocate 1024 bytes
+bufsize = 1024                     # Size of the buffer
 
-section .text
-    global _start
+    .section .text
+    .global _start
 
 _start:
-    ; Write 'Hello, World!' to stdout
-    mov rax, 1          ; syscall: write
-    mov rdi, 1          ; file descriptor: stdout
-    mov rsi, hello      ; message to write
-    mov rdx, 13         ; message length
-    syscall             ; invoke operating system to do the write
+    # Open the file
+    movl $5, %eax                   # syscall number for open
+    movl $filename, %ebx           # file path
+    movl $flags, %ecx              # flags (O_RDONLY)
+    xorl %edx, %edx                 # mode (not needed for read)
+    int $0x80                       # invoke system call
+    movl %eax, %ebx                 # store file descriptor in ebx
 
-    ; Exit
-    mov rax, 60         ; syscall: exit
-    xor rdi, rdi        ; exit code 0
-    syscall             ; invoke operating system to exit
+    # Read from the file
+    movl $3, %eax                   # syscall number for read
+    movl %ebx, %ebx                 # file descriptor
+    movl $buf, %ecx                 # buffer address
+    movl $bufsize, %edx             # buffer size
+    int $0x80                       # invoke system call
+
+    # Close the file
+    movl $6, %eax                   # syscall number for close
+    int $0x80                       # invoke system call
+
+    # Exit the program
+    movl $1, %eax                   # syscall number for exit
+    xorl %ebx, %ebx                 # return 0
+    int $0x80                       # invoke system call

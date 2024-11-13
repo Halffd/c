@@ -1,0 +1,1 @@
+savedcmd_/home/half/repos/c/exc/kernel/linux-hello.mod := printf '%s\n'   linux-hello.o | awk '!x[$$0]++ { print("/home/half/repos/c/exc/kernel/"$$0) }' > /home/half/repos/c/exc/kernel/linux-hello.mod

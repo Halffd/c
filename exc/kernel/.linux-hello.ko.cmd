@@ -1,0 +1,1 @@
+savedcmd_/home/half/repos/c/exc/kernel/linux-hello.ko := ld -r -m elf_x86_64 -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o /home/half/repos/c/exc/kernel/linux-hello.ko /home/half/repos/c/exc/kernel/linux-hello.o /home/half/repos/c/exc/kernel/linux-hello.mod.o
