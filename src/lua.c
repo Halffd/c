@@ -3,11 +3,6 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-#include <stdio.h>
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
 // Function to push an array of numbers to the Lua table
 void push_array_to_lua(lua_State *L, int *array, int size)
 {

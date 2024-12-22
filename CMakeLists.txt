@@ -1,68 +1,95 @@
 cmake_minimum_required(VERSION 3.28.1)
 project(c C)
 
-set(CMAKE_C_STANDARD 11)              # Set the C standard to C11
-set(CMAKE_C_STANDARD_REQUIRED ON)     # Make the standard required
-set(CMAKE_C_EXTENSIONS OFF)           # Disable compiler-specific extensions
+# Basic C configuration
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
-# Create a boolean option for assembly generation
-option(GENERATE_ASM "Generate assembly files" ON)
+# Options
+option(GENERATE_ASM "Generate assembly files" OFF)
+option(ENABLE_WARNINGS "Enable compiler warnings" ON)
 
-file(GLOB_RECURSE source_files "src/*.c")
+# Find source files
+file(GLOB_RECURSE SOURCE_FILES "src/*.c")
 
-add_executable(c ${source_files})
+# Create executable
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-# Find the necessary packages if needed (for example, pthread for multi-threading)
+# Required packages
 find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
-# Platform-specific settings
+# Platform-specific configuration
 if(WIN32)
-    # Windows-specific settings
-    set(SOCKETS "Ws2_32.lib") # Link against Winsock
-    target_link_libraries(c ${CMAKE_THREAD_LIBS_INIT} ws2_32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 else()
-    #find_package(PkgConfig REQUIRED)
-    #pkg_check_modules(LUA REQUIRED lua)
-    #include_directories(${LUA_INCLUDE_DIRS})
-    #target_link_libraries(c ${LUA_LIBRARIES})
-    # Non-Windows settings (e.g., for Linux or macOS)
-    #find_package(Lua REQUIRED)  # Find Lua package
-    #include_directories(${LUA_INCLUDE_DIR})  # Include Lua headers
-    #target_link_libraries(c ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES})  # Link Lua libraries
-    # Specify paths to Lua
+    find_package(Lua REQUIRED)
+    if(NOT LUA_FOUND)
+        message(FATAL_ERROR "Lua not found!")
+    endif()
+    
+    message(STATUS "Found Lua: ${LUA_VERSION_STRING}")
+    message(STATUS "Lua Include Dirs: ${LUA_INCLUDE_DIR}")
+    message(STATUS "Lua Libraries: ${LUA_LIBRARIES}")
+    
+    target_include_directories(${PROJECT_NAME} PRIVATE ${LUA_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${LUA_LIBRARIES})
 endif()
 
-# Include directories for your lib
-include_directories("${CMAKE_SOURCE_DIR}/lib")
-
-# Enable all warnings for GCC and Clang
-target_compile_options(c PRIVATE
-        #-Wall        # Enable all warnings
-        #-Wextra     # Enable extra warnings
-        #-Wpedantic   # Enable strict ISO C/C++ compliance
-        #-Werror      # Treat warnings as errors
+# Include directories
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    "${CMAKE_SOURCE_DIR}/lib"
 )
 
-# Set output properties 
-set_target_properties(c PROPERTIES OUTPUT_NAME c)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
-
-# Set the output directory for the assembly files
-set(CMAKE_ASM_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/asm)
-
-# Ensure the output directory exists
-file(MAKE_DIRECTORY ${CMAKE_ASM_OUTPUT_DIRECTORY})
-
-# Loop through source files to generate assembly if the option is enabled
-if(GENERATE_ASM)
-    foreach(source_file IN LISTS source_files)
-        get_filename_component(source_name ${source_file} NAME_WE)
-        add_custom_command(
-            OUTPUT ${CMAKE_ASM_OUTPUT_DIRECTORY}/${source_name}.s  # Assembly output file
-            COMMAND ${CMAKE_C_COMPILER} -I${CMAKE_SOURCE_DIR}/lib -g -S -O0 ${source_file} -o ${CMAKE_ASM_OUTPUT_DIRECTORY}/${source_name}.s
-            DEPENDS ${source_file}
-            COMMENT "Generating assembly for ${source_file}"
+# Compiler warnings
+if(ENABLE_WARNINGS)
+    if(MSVC)
+        target_compile_options(${PROJECT_NAME} PRIVATE 
+            /W4
+            /WX
         )
-        add_custom_target(generate_asm_${source_name} ALL DEPENDS ${CMAKE_ASM_OUTPUT_DIRECTORY}/${source_name}.s)
+    else()
+        target_compile_options(${PROJECT_NAME} PRIVATE
+            -Wall
+            -Wextra
+            -Wpedantic
+            #-Werror
+        )
+    endif()
+endif()
+
+# Output configuration
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+    OUTPUT_NAME ${PROJECT_NAME}
+    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
+)
+
+# Assembly generation
+if(GENERATE_ASM)
+    set(CMAKE_ASM_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/asm")
+    file(MAKE_DIRECTORY ${CMAKE_ASM_OUTPUT_DIRECTORY})
+    
+    foreach(SOURCE_FILE IN LISTS SOURCE_FILES)
+        get_filename_component(SOURCE_NAME ${SOURCE_FILE} NAME_WE)
+        set(ASM_OUTPUT "${CMAKE_ASM_OUTPUT_DIRECTORY}/${SOURCE_NAME}.s")
+        
+        add_custom_command(
+            OUTPUT ${ASM_OUTPUT}
+            COMMAND ${CMAKE_C_COMPILER} 
+                -I${CMAKE_SOURCE_DIR}/lib 
+                -g 
+                -S 
+                -O0 
+                ${SOURCE_FILE} 
+                -o ${ASM_OUTPUT}
+            DEPENDS ${SOURCE_FILE}
+            COMMENT "Generating assembly for ${SOURCE_NAME}"
+        )
+        
+        add_custom_target(asm_${SOURCE_NAME} 
+            ALL 
+            DEPENDS ${ASM_OUTPUT}
+        )
     endforeach()
 endif()
