@@ -14,6 +14,7 @@ int subs(void);
 void adv();
 int defn();
 void c99();
+void c99_2();
 int lua(int argc, char *argv[]);
 int est(int argc, char *argv[]);
 int serial(int argc, char* argv[]);

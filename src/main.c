@@ -13,38 +13,99 @@ int ac;
 char** av;
 FILE* f;
 
+#ifdef _WIN32
+#define DELIM "\\"
+#else
+#define DELIM "/"
+#endif
+
+
 typedef struct {
     char *base_path;
-    char *(*file)(const char *filename);
-} file_system;
-file_system fs;
+    char *full_path;
+    StrArray *dirs;
+    int dirCount;
+    //char *(*file)(struct FileSystem *, const char *);
+} FileSystem;
 
-// Function to append a filename to the base path
-char *append_filename(const char *filename) {
-    // Find the last backslash in the base path
-    char *last_slash = strrchr(fs.base_path, '\\');
 
-    // Calculate the required length for the full path string
-    size_t base_path_len = last_slash ? (last_slash - fs.base_path + 1) : strlen(fs.base_path);
+char* strdups(const char *s) {
+    if (!s) return NULL; // Handle NULL input
+    size_t len = strlen(s); // Get the length of the string
+    char *copy = (char *)malloc(len + 1); // Allocate memory for the new string (+1 for null terminator)
+    if (!copy) return NULL; // Check for allocation failure
+    strcpy(copy, s); // Copy the string into the new memory
+    return copy; // Return the duplicated string
+}
+
+// Function to construct a full file path
+char *append_filename(FileSystem *fs, const char *filename) {
+    size_t base_path_len = strlen(fs->base_path);
     size_t filename_len = strlen(filename);
-    size_t full_path_len = base_path_len + filename_len + 1; // +1 for '\0'
+    size_t full_path_len = base_path_len + filename_len + 2; // +2 for delim and '\0'
 
-    // Allocate memory for the full path string
     char *full_path = malloc(full_path_len);
-    if (full_path == NULL) {
+    if (!full_path) {
         perror("malloc");
         return NULL;
     }
-
-    // Concatenate the base path and filename
-    if (last_slash) {
-        snprintf(full_path, full_path_len, "%s%s", fs.base_path, filename);
-    } else {
-        snprintf(full_path, full_path_len, "%s\\%s", fs.base_path, filename);
-    }
-
+    
+    snprintf(full_path, full_path_len, "%s%s%s", fs->base_path, DELIM, filename);
     return full_path;
 }
+
+// Function to create a new file and write the current date and time
+FILE *create_file(FileSystem *fs, const char *filename) {
+    char *file_path = append_filename(fs, filename);
+    if (!file_path) return NULL;
+
+    FILE *file = fopen(file_path, "a");
+    if (!file) {
+        printf("Error creating file: %s\n", file_path);
+        free(file_path);
+        return NULL;
+    }
+
+    time_t current_time = time(NULL);
+    struct tm *timeinfo = localtime(&current_time);
+    char date_string[20];
+    char time_string[80];
+
+    strftime(date_string, sizeof(date_string), "%Y-%m-%d", timeinfo);
+    strftime(time_string, sizeof(time_string), "%c", timeinfo);
+
+    fprintf(file, "File created on: %s\n", date_string);
+    fprintf(file, "Time: %s\n", time_string);
+
+    fflush(file);
+    free(file_path);
+    return file;
+}
+
+// Function to initialize a FileSystem structure
+FileSystem* create_filesystem(const char *base_path) {
+    FileSystem *fs = (FileSystem *)malloc(sizeof(FileSystem));
+    if (!fs) {
+        perror("malloc");
+        return NULL;
+    }
+    fs->full_path = strdups(base_path); // Duplicate the base path
+    fs->dirs = split(fs->full_path, DELIM);
+    del(fs->dirs, -1);
+    #ifndef WINDOWS
+    prepend(fs->dirs, "");
+    #endif
+    fs->dirCount = fs->dirs->size;
+    fs->base_path = join(fs->dirs, DELIM);
+    //fs->file = append_filename; // Set the file function pointer
+    return fs;
+}
+// Function to free the FileSystem structure
+void free_filesystem(FileSystem *fs) {
+    free(fs->base_path);
+    free(fs);
+}
+
 long srcSize(){
     FILE *file = fopen(__FILE__, "rb");  // Open the current source file
 
@@ -100,25 +161,25 @@ FILE* nfile(const char *file_path)
 
 int main(int argc, char *argv[]) 
 {
-    ac = argc;
-    av = argv;
-    StrArray *dirs = split(argv[0], "\\");
-    del(dirs, -1);
-    set(dirs, -1, "log\\");
-    fs.base_path = join(dirs, "\\");
-    fs.file = append_filename;
-    char *d = replace(argv[0], "build\\c.exe", "");
-    char *dd = replace(d, "\\", "/");
-    printw("Args: %s\nDir: %s\n---------------\n", argv[0], fs.base_path);
-    f = nfile(fs.file("cfile.txt"));
-    FILE *new_file = fopen(fs.file("testc"), "w");
-    fprintf(new_file, "...");
-    fclose(new_file);
+    // Create the FileSystem with a base path
+    FileSystem *fs = create_filesystem(argv[0]);
+    if (!fs) {
+        return EXIT_FAILURE;
+    }
 
+    // Create a file using the FileSystem
+    f = create_file(fs, "output.txt");
+
+    // Print filesystem information
+    printf("Base path: %s\n", fs->base_path);
+    char *path = append_filename(fs, "cfile.txt");
+    nfile(path);
+    // Clean up
     //prov(argc, argv);
     //c11();
-    pthr();
+    //pthr();
     //c99();
+    c99_2();
     //defn();
     //adv();
     //lua(argc, argv);
@@ -138,5 +199,6 @@ int main(int argc, char *argv[])
     //cmpss()
     //studs();
     //fclose(file);
+    free_filesystem(fs);
     return 0;
 }

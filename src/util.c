@@ -122,6 +122,43 @@ void append(StrArray *arr, const char *token) {
     arr->size++;
 }
 
+// Function to prepend a string to the dynamic array
+void prepend(StrArray *arr, const char *token) {
+    if (arr->size >= arr->capacity) {
+        arr->capacity *= 2; // Double the capacity
+        arr->tokens = realloc(arr->tokens, arr->capacity * sizeof(char*));
+    }
+
+    // Shift elements to the right to make space for the new token
+    for (size_t i = arr->size; i > 0; i--) {
+        arr->tokens[i] = arr->tokens[i - 1];
+    }
+
+    arr->tokens[0] = strdup(token); // Duplicate the token at the beginning
+    arr->size++;
+}
+
+// Function to insert a string at a specific index in the dynamic array
+void insert(StrArray *arr, const char *token, size_t index) {
+    if (index > arr->size) {
+        printf("Index out of bounds\n");
+        return; // Handle out-of-bounds index
+    }
+
+    if (arr->size >= arr->capacity) {
+        arr->capacity *= 2; // Double the capacity
+        arr->tokens = realloc(arr->tokens, arr->capacity * sizeof(char*));
+    }
+
+    // Shift elements to the right to make space for the new token
+    for (size_t i = arr->size; i > index; i--) {
+        arr->tokens[i] = arr->tokens[i - 1];
+    }
+
+    arr->tokens[index] = strdup(token); // Duplicate the token at the specified index
+    arr->size++;
+}
+
 // Function to get a string at a specific index
 const char* get(StrArray *arr, int index) {
     if (index < 0) {

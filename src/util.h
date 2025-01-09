@@ -36,6 +36,12 @@ void free_array(StrArray *arr);
 // Function to append a string to the dynamic array
 void append(StrArray *arr, const char *token);
 
+// Function to prepend a string to the dynamic array
+void prepend(StrArray *arr, const char *token);
+
+// Function to insert a string at a specific index in the dynamic array
+void insert(StrArray *arr, const char *token, size_t index);
+
 // Function to get a string at a specific index
 const char* get(StrArray *arr, int index);
 
