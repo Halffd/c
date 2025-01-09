@@ -19,7 +19,7 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 # Required packages
 find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-
+ 
 # Platform-specific configuration
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
@@ -34,7 +34,8 @@ else()
     message(STATUS "Lua Libraries: ${LUA_LIBRARIES}")
     
     target_include_directories(${PROJECT_NAME} PRIVATE ${LUA_INCLUDE_DIR})
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${LUA_LIBRARIES})
+    #target_link_libraries(${PROJECT_NAME} PRIVATE ${LUA_LIBRARIES} lua)
+    target_link_libraries(${PROJECT_NAME} luajit-5.1)
 endif()
 
 # Include directories
