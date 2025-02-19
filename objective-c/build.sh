@@ -1,0 +1,1 @@
+/bin/gcc main.m -o Main -I/lib/GNUstep/System/Library/Headers -fconstant-string-class=NSConstantString -D_NATIVE_OBJC_EXCEPTIONS -Os -Wall -Wextra -L/lib/GNUstep/System/Library/Libraries -lgnustep-base -lobjc -L. && ./Main
