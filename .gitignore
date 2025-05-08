@@ -8,3 +8,7 @@ file
 src/out
 log
 .cache
+exc/*.log
+exc/*.out
+*.out
+*.log
